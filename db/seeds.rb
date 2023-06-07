@@ -1,4 +1,5 @@
 require 'database_cleaner'
+require 'csv'
 
 class Seeds
   COLOR_SCALE_GREEN = '#DDF1A3'
@@ -26,6 +27,7 @@ class Seeds
       clean_db
       create_categories
       create_merchants
+      create_transactions
       Rails.logger.info('Database is seeded')
   end
 
@@ -60,6 +62,23 @@ class Seeds
     end
 
     Rails.logger.info('Added Merchants')
+  end
+
+  def create_transactions
+    csv_file = Rails.root.join('transactions.csv')
+
+    CSV.foreach(csv_file, headers: true, header_converters: ->(h) { h.strip }) do |row|
+      Transaction.create(
+        transaction_name: row['Transaction Name'].strip,
+        merchant: row['Merchant'].strip,
+        amount: row['Amount'].strip,
+        date: Date.strptime(row['Date'].strip, '%m/%d/%Y'),
+        category: row['Category'].strip,
+        reviewed: false,
+      )
+    end
+    
+    Rails.logger.info('Added Transactions')
   end
 end
 
